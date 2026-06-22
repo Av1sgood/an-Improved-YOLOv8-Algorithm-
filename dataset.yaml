@@ -1,0 +1,14 @@
+cat << 'EOF' > /workspace/dataset_split/data.yaml
+path: /workspace/dataset_split
+train: /workspace/dataset_split/train/images
+val: /workspace/dataset_split/valid/images
+
+nc: 9
+names: ['aluminum_can', 'chip_packet', 'cork_sheet', 'one_time_foam_box', 'one_time_paper_cup', 'one_time_plastic_cup', 'one_time_plastic_plate', 'plastic_bottle', 'polythene_bag']
+
+roboflow:
+  workspace: s-workspace-lu19j
+  project: s-workspace-lu19j
+  version: dataset
+  license: Private
+  url: https://app.roboflow.com/s-workspace-lu19j/s-workspace-lu19j/dataset

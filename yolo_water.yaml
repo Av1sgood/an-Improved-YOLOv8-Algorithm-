@@ -1,0 +1,46 @@
+# yolov8_water.yaml
+
+nc: 9
+scales:
+  s: [0.33, 0.50, 1024]
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]          # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]         # 1-P2/4
+  - [-1, 3, C3x, [128, True]]          # 2-P2
+  - [-1, 1, Conv, [256, 3, 2]]         # 3-P3/8
+  - [-1, 6, C3x, [256, True]]          # 4-P3
+  - [-1, 1, Conv, [512, 3, 2]]         # 5-P4/16
+  - [-1, 6, C3x, [512, True]]          # 6-P4
+  - [-1, 1, Conv, [1024, 3, 2]]        # 7-P5/32
+  - [-1, 3, C3x, [1024, True]]         # 8-P5
+  - [-1, 1, SPPF, [1024, 5]]           # 9
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 10
+  - [[10, 6], 1, Concat, [1]]       
+  - [-1, 3, C3Ghost, [512]]            # 12 
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 13
+  - [[13, 4], 1, Concat, [1]]       
+  - [-1, 3, C3Ghost, [256]]            # 15 
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 16 (微小目標上採樣)
+  - [[16, 2], 1, Concat, [1]]       
+  - [-1, 3, C3Ghost, [128]]            # 18 (P2 層)
+
+  - [-1, 1, GhostConv, [128, 3, 2]]    # 19 
+  - [[19, 15], 1, Concat, [1]]      
+  - [-1, 3, C3Ghost, [256]]            # 21 (P3 層)
+
+  - [-1, 1, GhostConv, [256, 3, 2]]    # 22 
+  - [[22, 12], 1, Concat, [1]]      
+  - [-1, 3, C3Ghost, [512]]            # 24 (P4 層)
+
+  - [-1, 1, GhostConv, [512, 3, 2]]    # 25 
+  - [[25, 9], 1, Concat, [1]]       
+  - [-1, 3, C3Ghost, [1024]]           # 27 (P5 層)
+
+  # 修正：直接呼叫 Detect，底層已被我們劫持為包含 ASFF 融合的 Four-Detect-ASFF
+  - [[18, 21, 24, 27], 1, Detect, [nc]] # 28
